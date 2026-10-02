@@ -1,0 +1,39 @@
+# macOS
+.DS_Store
+
+# Secrets and local credentials
+.creds
+.env
+*.env
+!.env.example
+*.secret
+*.local
+
+# Local datasets
+raw-csv/
+data/
+
+# Environment-specific AWS/Snowflake values
+aws/iam/snowflake-role-trust-policy-final.json
+snowflake/profiles.yml
+
+# Private references and generated notes
+references - dasrhils/
+references - bolt dbt/
+.process_summary.md
+.reference-*.md
+
+# dbt artifacts
+target/
+dbt_packages/
+logs/
+*.user.yml
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated outputs
+*.parquet
