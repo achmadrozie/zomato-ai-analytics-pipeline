@@ -5,10 +5,10 @@ with source as (
 , transformed as (
     select
         menu_id
-        , r_id      AS restaurant_id
-        , f_id      AS food_id
-        , cuisine   AS cuisine
-        , CAST(price AS FLOAT)    AS price
+        , r_id                    AS restaurant_id
+        , f_id                    AS food_id
+        , SPLIT(cuisine, ',')     AS cuisine
+        , TRY_TO_DOUBLE(price::VARCHAR) AS price
     from source
 )
 

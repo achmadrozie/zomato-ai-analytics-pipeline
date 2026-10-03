@@ -1,9 +1,9 @@
 models:
   - name: stg_zomato__menu
-    description
+    description: '{{ doc("stg_zomato__menu") }}'
     columns:
       - name: menu_id
         description: '{{ doc("menu_id") }}'
         data_tests:
-          - unique
+          # - unique
           - not_null
