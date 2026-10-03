@@ -1,0 +1,13 @@
+# models/staging/_sources.yml
+sources:
+  - name: zomato
+    database: ZOMATO
+    schema: SOURCES
+    tables:
+      - name: restaurants
+      - name: food
+      - name: menu
+      - name: order_items
+      - name: orders
+      - name: reviews
+      - name: users
