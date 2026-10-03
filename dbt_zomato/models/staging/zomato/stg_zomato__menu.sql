@@ -10,6 +10,8 @@ with source as (
         , SPLIT(cuisine, ',')     AS cuisine
         , TRY_TO_DOUBLE(price::VARCHAR) AS price
     from source
+    where try_to_number(r_id) is not null 
+        and try_to_decimal(price,10,2) > 0
 )
 
 select * from transformed
