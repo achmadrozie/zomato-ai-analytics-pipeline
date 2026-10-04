@@ -1,0 +1,61 @@
+version: 2
+
+semantic_models:
+  - name: fact_order_item
+    description: Item-level metrics sourced from one row per order item in fact_order_item.
+    model: ref('fact_order_item')
+    defaults:
+      agg_time_dimension: order_date
+    entities:
+      - name: order_item
+        type: primary
+        expr: order_item_id
+      - name: order
+        type: foreign
+        expr: order_id
+      - name: restaurant
+        type: foreign
+        expr: restaurant_id
+      - name: food
+        type: foreign
+        expr: food_id
+    dimensions:
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: city
+        type: categorical
+    measures:
+      - name: order_items
+        description: Number of order-item rows.
+        expr: order_item_id
+        agg: count
+      - name: item_quantity
+        description: Sum of item quantities.
+        expr: quantity
+        agg: sum
+      - name: item_line_amount
+        description: Sum of recorded item line amounts; excludes order-level adjustments.
+        expr: line_amount
+        agg: sum
+
+metrics:
+  - name: order_items
+    description: Number of order-item rows.
+    type: simple
+    label: Order Items
+    type_params:
+      measure: order_items
+  - name: item_quantity
+    description: Sum of item quantities.
+    type: simple
+    label: Item Quantity
+    type_params:
+      measure: item_quantity
+  - name: item_line_amount
+    description: Sum of recorded item line amounts.
+    type: simple
+    label: Item Line Amount
+    type_params:
+      measure: item_line_amount

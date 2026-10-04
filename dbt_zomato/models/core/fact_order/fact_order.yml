@@ -27,6 +27,10 @@ models:
         description: '{{ doc("fact_order_order_status") }}'
       - name: is_delivered
         description: '{{ doc("fact_order_is_delivered") }}'
+      - name: is_cancelled
+        description: '{{ doc("fact_order_is_cancelled") }}'
+      - name: order_hour
+        description: '{{ doc("fact_order_order_hour") }}'
       - name: items_count
         description: '{{ doc("fact_order_items_count") }}'
       - name: sales_qty
@@ -41,6 +45,8 @@ models:
         description: '{{ doc("fact_order_gst") }}'
       - name: sales_amount
         description: '{{ doc("fact_order_sales_amount") }}'
+      - name: delivered_sales_amount
+        description: '{{ doc("fact_order_delivered_sales_amount") }}'
       - name: customer_rating
         description: '{{ doc("fact_order_customer_rating") }}'
       - name: delivery_time_min
