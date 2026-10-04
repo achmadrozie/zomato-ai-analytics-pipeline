@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: ai
+    database: ZOMATO
+    schema: AI
+    description: Review enrichment output produced outside dbt.
+    tables:
+      - name: review_enriched
+        description: One row per enriched review with sentiment, topic, and key issue.

@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: metricflow_time_spine
+    description: Continuous daily dates from 2020-01-01 through 2030-12-31 for MetricFlow.
+    time_spine:
+      standard_granularity_column: date_day
+    columns:
+      - name: date_day
+        description: Calendar date at daily grain.
+        granularity: day
+        data_tests:
+          - unique
+          - not_null

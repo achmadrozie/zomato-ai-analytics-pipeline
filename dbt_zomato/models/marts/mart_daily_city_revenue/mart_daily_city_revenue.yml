@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: mart_daily_city_revenue
+    description: '{{ doc("mart_daily_city_revenue") }}'
+    columns:
+      - name: order_date
+        description: '{{ doc("mart_daily_city_revenue_order_date") }}'
+      - name: city
+        description: '{{ doc("mart_daily_city_revenue_city") }}'
+      - name: orders
+        description: '{{ doc("mart_daily_city_revenue_orders") }}'
+      - name: delivered_orders
+        description: '{{ doc("mart_daily_city_revenue_delivered_orders") }}'
+      - name: cancel_rate
+        description: '{{ doc("mart_daily_city_revenue_cancel_rate") }}'
+      - name: gmv
+        description: '{{ doc("mart_daily_city_revenue_gmv") }}'
+      - name: aov
+        description: '{{ doc("mart_daily_city_revenue_aov") }}'

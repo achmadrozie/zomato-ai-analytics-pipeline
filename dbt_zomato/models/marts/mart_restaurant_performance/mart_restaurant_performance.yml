@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: mart_restaurant_performance
+    description: '{{ doc("mart_restaurant_performance") }}'
+    columns:
+      - name: restaurant_id
+        description: '{{ doc("mart_restaurant_performance_restaurant_id") }}'
+        data_tests:
+          - not_null
+          - unique
+      - name: restaurant_name
+        description: '{{ doc("mart_restaurant_performance_restaurant_name") }}'
+      - name: city
+        description: '{{ doc("mart_restaurant_performance_city") }}'
+      - name: cuisine
+        description: '{{ doc("mart_restaurant_performance_cuisine") }}'
+      - name: orders
+        description: '{{ doc("mart_restaurant_performance_orders") }}'
+      - name: revenue
+        description: '{{ doc("mart_restaurant_performance_revenue") }}'
+      - name: avg_customer_rating
+        description: '{{ doc("mart_restaurant_performance_avg_customer_rating") }}'
+      - name: avg_delivery_min
+        description: '{{ doc("mart_restaurant_performance_avg_delivery_min") }}'

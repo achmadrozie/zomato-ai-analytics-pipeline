@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: mart_review_insights
+    description: '{{ doc("mart_review_insights") }}'
+    columns:
+      - name: city
+        description: '{{ doc("mart_review_insights_city") }}'
+      - name: topic
+        description: '{{ doc("mart_review_insights_topic") }}'
+      - name: sentiment_label
+        description: '{{ doc("mart_review_insights_sentiment_label") }}'
+      - name: reviews
+        description: '{{ doc("mart_review_insights_reviews") }}'
+      - name: avg_sentiment_score
+        description: '{{ doc("mart_review_insights_avg_sentiment_score") }}'
+      - name: avg_star_rating
+        description: '{{ doc("mart_review_insights_avg_star_rating") }}'
+      - name: flagged_issues
+        description: '{{ doc("mart_review_insights_flagged_issues") }}'

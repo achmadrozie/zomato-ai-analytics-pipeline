@@ -1,0 +1,86 @@
+version: 2
+
+semantic_models:
+  - name: fact_order
+    description: Order-level metrics sourced from one row per order in fact_order.
+    model: ref('fact_order')
+    defaults:
+      agg_time_dimension: order_date
+    entities:
+      - name: order
+        type: primary
+        expr: order_id
+      - name: customer
+        type: foreign
+        expr: customer_id
+      - name: restaurant
+        type: foreign
+        expr: restaurant_id
+    dimensions:
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: city
+        type: categorical
+      - name: order_status
+        type: categorical
+      - name: payment_method
+        type: categorical
+    measures:
+      - name: orders
+        description: Number of orders, regardless of status.
+        expr: order_id
+        agg: count
+      - name: delivered_orders
+        description: Number of delivered orders.
+        expr: IFF(is_delivered, 1, 0)
+        agg: sum
+      - name: cancelled_orders
+        description: Number of cancelled orders.
+        expr: IFF(is_cancelled, 1, 0)
+        agg: sum
+      - name: gmv
+        description: Sum of sales amounts for delivered orders.
+        expr: delivered_sales_amount
+        agg: sum
+
+metrics:
+  - name: orders
+    description: Number of orders, regardless of status.
+    type: simple
+    label: Orders
+    type_params:
+      measure: orders
+  - name: delivered_orders
+    description: Number of delivered orders.
+    type: simple
+    label: Delivered Orders
+    type_params:
+      measure: delivered_orders
+  - name: cancelled_orders
+    description: Number of cancelled orders.
+    type: simple
+    label: Cancelled Orders
+    type_params:
+      measure: cancelled_orders
+  - name: gmv
+    description: Sum of sales amounts for delivered orders.
+    type: simple
+    label: GMV
+    type_params:
+      measure: gmv
+  - name: aov
+    description: GMV divided by delivered orders at the requested grain.
+    type: ratio
+    label: Average Order Value
+    type_params:
+      numerator: gmv
+      denominator: delivered_orders
+  - name: cancel_rate
+    description: Cancelled orders divided by all orders at the requested grain.
+    type: ratio
+    label: Cancellation Rate
+    type_params:
+      numerator: cancelled_orders
+      denominator: orders

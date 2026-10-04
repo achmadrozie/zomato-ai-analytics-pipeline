@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: mart_delivery_sla
+    description: '{{ doc("mart_delivery_sla") }}'
+    columns:
+      - name: city
+        description: '{{ doc("mart_delivery_sla_city") }}'
+      - name: order_hour
+        description: '{{ doc("mart_delivery_sla_order_hour") }}'
+      - name: delivered_orders
+        description: '{{ doc("mart_delivery_sla_delivered_orders") }}'
+      - name: p50
+        description: '{{ doc("mart_delivery_sla_p50") }}'
+      - name: p90
+        description: '{{ doc("mart_delivery_sla_p90") }}'
