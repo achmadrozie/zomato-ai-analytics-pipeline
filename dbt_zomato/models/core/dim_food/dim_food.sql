@@ -1,5 +1,5 @@
 SELECT 
-    f_id
+    food_id
     , food_name
     , veg_or_non_veg 
 from {{ ref('stg_zomato__food') }}
