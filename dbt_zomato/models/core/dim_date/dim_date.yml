@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: '{{ doc("dim_date") }}'
+    columns:
+      - name: date_day
+        description: '{{ doc("dim_date_date_day") }}'
+        data_tests:
+          - unique
+          - not_null
+      - name: year
+        description: '{{ doc("dim_date_year") }}'
+      - name: month
+        description: '{{ doc("dim_date_month") }}'
+      - name: month_name
+        description: '{{ doc("dim_date_month_name") }}'
+      - name: day_name
+        description: '{{ doc("dim_date_day_name") }}'
+      - name: is_weekend
+        description: '{{ doc("dim_date_is_weekend") }}'

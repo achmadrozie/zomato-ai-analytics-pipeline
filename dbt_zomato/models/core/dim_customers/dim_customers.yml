@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: '{{ doc("dim_customers") }}'
+    columns:
+      - name: customer_id
+        description: '{{ doc("dim_customers_customer_id") }}'
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_name
+        description: '{{ doc("dim_customers_customer_name") }}'
+      - name: email
+        description: '{{ doc("dim_customers_email") }}'
+      - name: age
+        description: '{{ doc("dim_customers_age") }}'
+      - name: age_segment
+        description: '{{ doc("dim_customers_age_segment") }}'
+      - name: gender
+        description: '{{ doc("dim_customers_gender") }}'
+      - name: marital_status
+        description: '{{ doc("dim_customers_marital_status") }}'
+      - name: occupation
+        description: '{{ doc("dim_customers_occupation") }}'
+      - name: income_band
+        description: '{{ doc("dim_customers_income_band") }}'
+      - name: education
+        description: '{{ doc("dim_customers_education") }}'
+      - name: family_size
+        description: '{{ doc("dim_customers_family_size") }}'
