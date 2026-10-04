@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: dim_restaurants
+    description: '{{ doc("dim_restaurants") }}'
+    columns:
+      - name: restaurant_id
+        description: '{{ doc("dim_restaurants_restaurant_id") }}'
+        data_tests:
+          - unique
+          - not_null
+      - name: restaurant_name
+        description: '{{ doc("dim_restaurants_restaurant_name") }}'
+      - name: city
+        description: '{{ doc("dim_restaurants_city") }}'
+      - name: cuisine
+        description: '{{ doc("dim_restaurants_cuisine") }}'
+      - name: rating
+        description: '{{ doc("dim_restaurants_rating") }}'
+      - name: rating_count
+        description: '{{ doc("dim_restaurants_rating_count") }}'
+      - name: cost_for_two
+        description: '{{ doc("dim_restaurants_cost_for_two") }}'
