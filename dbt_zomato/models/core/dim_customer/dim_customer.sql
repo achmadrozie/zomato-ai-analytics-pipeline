@@ -16,4 +16,4 @@ SELECT
     , income_band
     , education
     , family_size
-FROM {{ ref('stg_zomato__users') }}
+FROM {{ ref('stg_zomato__user') }}

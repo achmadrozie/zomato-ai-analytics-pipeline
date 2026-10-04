@@ -6,4 +6,4 @@ SELECT
     , rating
     , rating_count
     , cost_for_two
-FROM {{ ref('stg_zomato__restaurants') }}
+FROM {{ ref('stg_zomato__restaurant') }}
