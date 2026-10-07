@@ -2,20 +2,20 @@ version: 2
 
 semantic_models:
   - name: fact_order
-    description: Order-level metrics sourced from one row per order in fact_order.
+    description: table that contained order data - granularity on order_id
     model: ref('fact_order')
     defaults:
       agg_time_dimension: order_date
     entities:
-      - name: order
-        type: primary
+      - name: order_id
         expr: order_id
-      - name: customer
-        type: foreign
+        type: primary
+      - name: customer_id
         expr: customer_id
-      - name: restaurant
         type: foreign
+      - name: restaurant_id
         expr: restaurant_id
+        type: foreign
     dimensions:
       - name: order_date
         type: time
@@ -28,59 +28,23 @@ semantic_models:
       - name: payment_method
         type: categorical
     measures:
-      - name: orders
-        description: Number of orders, regardless of status.
+      - name: count_order_total
+        description: Total count order, regardless of status
         expr: order_id
         agg: count
-      - name: delivered_orders
-        description: Number of delivered orders.
+      - name: count_order_delivered
+        description: Total count order where order_status == 'Delivered'
         expr: IFF(is_delivered, 1, 0)
         agg: sum
-      - name: cancelled_orders
-        description: Number of cancelled orders.
+      - name: count_order_cancelled
+        description: Total count order where order_status == 'Cancelled'
         expr: IFF(is_cancelled, 1, 0)
         agg: sum
-      - name: gmv
-        description: Sum of sales amounts for delivered orders.
-        expr: delivered_sales_amount
+      - name: count_order_refunded
+        description: Total count order where order_status == 'Refunded'
+        expr: IFF(is_refunded, 1, 0)
         agg: sum
-
-metrics:
-  - name: orders
-    description: Number of orders, regardless of status.
-    type: simple
-    label: Orders
-    type_params:
-      measure: orders
-  - name: delivered_orders
-    description: Number of delivered orders.
-    type: simple
-    label: Delivered Orders
-    type_params:
-      measure: delivered_orders
-  - name: cancelled_orders
-    description: Number of cancelled orders.
-    type: simple
-    label: Cancelled Orders
-    type_params:
-      measure: cancelled_orders
-  - name: gmv
-    description: Sum of sales amounts for delivered orders.
-    type: simple
-    label: GMV
-    type_params:
-      measure: gmv
-  - name: aov
-    description: GMV divided by delivered orders at the requested grain.
-    type: ratio
-    label: Average Order Value
-    type_params:
-      numerator: gmv
-      denominator: delivered_orders
-  - name: cancel_rate
-    description: Cancelled orders divided by all orders at the requested grain.
-    type: ratio
-    label: Cancellation Rate
-    type_params:
-      numerator: cancelled_orders
-      denominator: orders
+      - name: gmv
+        description: Total sales_amount when order_status == 'Delivered'
+        expr: case when order_status == 'Delivered' then sales_amount end
+        agg: sum
