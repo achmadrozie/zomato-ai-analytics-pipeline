@@ -52,6 +52,7 @@ SELECT
     , order_status
     , is_delivered
     , is_cancelled
+    , is_refunded
     , order_hour
     , items_count
     , sales_qty
