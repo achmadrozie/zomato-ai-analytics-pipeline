@@ -29,22 +29,17 @@ semantic_models:
         type: categorical
     measures:
       - name: count_order_total
-        description: Total count order, regardless of status
         expr: order_id
         agg: count
       - name: count_order_delivered
-        description: Total count order where order_status == 'Delivered'
         expr: IFF(is_delivered, 1, 0)
         agg: sum
       - name: count_order_cancelled
-        description: Total count order where order_status == 'Cancelled'
         expr: IFF(is_cancelled, 1, 0)
         agg: sum
       - name: count_order_refunded
-        description: Total count order where order_status == 'Refunded'
         expr: IFF(is_refunded, 1, 0)
         agg: sum
       - name: gmv
-        description: Total sales_amount when order_status == 'Delivered'
         expr: case when order_status == 'Delivered' then sales_amount end
         agg: sum
