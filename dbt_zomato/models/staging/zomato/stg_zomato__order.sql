@@ -23,7 +23,9 @@ WITH source AS (
         , currency
         , payment_method
         , order_status
-        , (order_status = 'Delivered')          AS is_delivered
+        , IFF(order_status = 'Delivered', True, False)          AS is_delivered
+        , IFF(order_status = 'Cancelled', True, False)          AS is_cancelled
+        , IFF(order_status = 'Refunded', True, False)           AS is_refunded
         , customer_rating
         , delivery_time_min
     FROM source
