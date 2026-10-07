@@ -19,7 +19,8 @@ WITH orders AS (
         , payment_method
         , order_status
         , is_delivered
-        , (order_status = 'Cancelled') AS is_cancelled
+        , is_cancelled
+        , is_refunded
         , HOUR(TRY_TO_TIMESTAMP_NTZ(order_timestamp)) AS order_hour
         , items_count
         , sales_qty
@@ -51,6 +52,7 @@ SELECT
     , order_status
     , is_delivered
     , is_cancelled
+    , is_refunded
     , order_hour
     , items_count
     , sales_qty
