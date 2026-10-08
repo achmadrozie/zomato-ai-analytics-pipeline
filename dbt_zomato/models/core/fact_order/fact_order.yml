@@ -15,6 +15,11 @@ models:
         description: '{{ doc("fact_order_order_date") }}'
       - name: customer_id
         description: '{{ doc("fact_order_customer_id") }}'
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
       - name: restaurant_id
         description: '{{ doc("fact_order_restaurant_id") }}'
       - name: city
@@ -25,6 +30,10 @@ models:
         description: '{{ doc("fact_order_payment_method") }}'
       - name: order_status
         description: '{{ doc("fact_order_order_status") }}'
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Delivered', 'Cancelled', 'Refunded']
       - name: is_delivered
         description: '{{ doc("fact_order_is_delivered") }}'
       - name: is_cancelled

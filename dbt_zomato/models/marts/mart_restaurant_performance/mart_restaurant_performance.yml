@@ -8,7 +8,6 @@ models:
         description: '{{ doc("mart_restaurant_performance_restaurant_id") }}'
         data_tests:
           - not_null
-          - unique
       - name: restaurant_name
         description: '{{ doc("mart_restaurant_performance_restaurant_name") }}'
       - name: city

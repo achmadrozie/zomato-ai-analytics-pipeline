@@ -1,3 +1,5 @@
+version: 2
+
 models:
   - name: stg_zomato__menu
     description: '{{ doc("stg_zomato__menu") }}'
@@ -6,4 +8,45 @@ models:
         description: '{{ doc("menu_id") }}'
         data_tests:
           # - unique
+          - not_null
+
+  - name: stg_zomato__order
+    columns:
+      - name: order_id
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_tests:
+          - not_null
+      - name: restaurant_id
+        data_tests:
+          - not_null
+
+  - name: stg_zomato__order_item
+    columns:
+      - name: order_item_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_zomato__restaurant
+    columns:
+      - name: restaurant_id
+        data_tests:
+          # - unique
+          - not_null
+
+  - name: stg_zomato__user
+    columns:
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_zomato__review
+    columns:
+      - name: review_id
+        data_tests:
+          - unique
           - not_null
