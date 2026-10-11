@@ -27,7 +27,9 @@ x-airflow-common: &airflow-common
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ../dbt_zomato:/opt/airflow/dbt/dbt_zomato      # your dbt project
+    - ${HOME}/.dbt:/opt/airflow/.dbt:ro              # snowflake creds
     - ../ai:/opt/airflow/ai                       # the enrich_reviews.py script
+    
   depends_on:
     postgres:
       condition: service_healthy
