@@ -15,7 +15,7 @@ TOPICS = [
     , "pricing"
     , "service"
     , "packaging"
-    , "courier behavior"
+    , "courier_behavior"
     , "others"
 ]
 
@@ -41,6 +41,8 @@ You classify customer reviews for a food delivery app - Zomato.
 For the review you are given, return:
 - sentiment_label: positive, negative, or neutral
 - sentiment_score: a number between -1.0 and 1.0
+- confidence_score: a number between 0 and 1.0
+- confidence_rationale: short string within 100 chars behind confidence_score
 - topic: one of {TOPICS}
 - key_issue: a short phrase of 6 words or less that describes the main issue in the review, if any. If there is no issue, return null
 
@@ -48,11 +50,13 @@ Reply as JSON in this exact format:
     {{
         "sentiment_label": "<sentiment_label>",
         "sentiment_score": <sentiment_score>,
+        "confidence_score": <confidence_score>,
+        "confidence_rationale": "<confidence_rationale>",
         "topic": "<topic>",
         "key_issue": "<key_issue>"
     }}
 """
-
+# How this file get an access into snowflake
 def get_connection():
     print('gathering connection')
     return snowflake.connector.connect(
@@ -72,6 +76,8 @@ def create_output_table(cursor):
             REVIEW_ID STRING,
             SENTIMENT_LABEL STRING,
             SENTIMENT_SCORE FLOAT,
+            CONFIDENCE_SCORE FLOAT,
+            CONFIDENCE_RATIONALE STRING,
             TOPIC STRING,
             KEY_ISSUE STRING,
             MODEL STRING,
@@ -110,8 +116,8 @@ def save_results(cursor, results):
     cursor.executemany(
         """
         INSERT INTO ZOMATO.AI.REVIEW_ENRICHED
-            (review_id, sentiment_label, sentiment_score, topic, key_issue, model)
-        VALUES (%s, %s, %s, %s, %s, %s)
+            (review_id, sentiment_label, sentiment_score, confidence_score, confidence_rationale, topic, key_issue, model)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """,
         results,
     )
@@ -138,6 +144,8 @@ def main():
                 review_id,
                 labels["sentiment_label"],
                 labels["sentiment_score"],
+                labels["confidence_score"],
+                labels["confidence_rationale"],
                 labels["topic"],
                 labels["key_issue"],
                 MODEL
