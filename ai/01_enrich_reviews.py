@@ -9,7 +9,7 @@ load_dotenv()
 
 MODEL = "gpt-4o-mini"
 
-SAMPLE_N = 10000
+SAMPLE_N = 100
 TOPICS = [
     "food_quality"
     , "delivery"
