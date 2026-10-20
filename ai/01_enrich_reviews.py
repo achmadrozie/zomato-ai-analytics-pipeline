@@ -1,3 +1,4 @@
+########## 01 Environment setup ##########
 import os
 import json
 import snowflake.connector
@@ -58,7 +59,8 @@ REVIEW_RESPONSE_FORMAT = {
         },
     },
 }
-# How this file get an access into snowflake
+
+########## 02 Connect to Snowflake ##########
 def get_connection():
     for attempt in range(1, 4):
         print(f"Connecting to Snowflake (attempt {attempt}/3)...", flush=True)
@@ -79,6 +81,7 @@ def get_connection():
                 raise
             print("Snowflake connection failed; retrying...", flush=True)
 
+########## 03 Prepare output table on the Snowflake ##########
 def create_output_table(cursor):
     print('creating table output')
     cursor.execute("CREATE SCHEMA IF NOT EXISTS ZOMATO.AI")
@@ -95,6 +98,7 @@ def create_output_table(cursor):
     """
     )
 
+########## 04 Fetch new reviews from Snowflake ##########
 def get_reviews_to_enrich(cursor):
     cursor.execute(f"""
         SELECT 
@@ -106,6 +110,7 @@ def get_reviews_to_enrich(cursor):
     """)
     return cursor.fetchall()
 
+########## 05 Classify fetched review (if any) ##########
 def classify_review(comment):
     response = client.chat.completions.create(
         model=MODEL,
@@ -128,6 +133,7 @@ def classify_review(comment):
 
     return labels
 
+########## 06 Save enriched reviews into Snowflake ##########
 def save_results(cursor, results):
     """Insert all the enriched rows into Snowflake in one go."""
     print(f"Saving {len(results)} enriched reviews to Snowflake...")
@@ -140,6 +146,7 @@ def save_results(cursor, results):
         results,
     )
 
+########## 07 MAIN function ##########
 def main():
     conn = get_connection()
     cursor = conn.cursor()

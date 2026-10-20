@@ -1,3 +1,4 @@
+########## 01 Environment setup ##########
 import os
 import numpy as np
 import pandas as pd
@@ -15,6 +16,7 @@ top_k = 5
 CACHE_FILE = "review_embeddings.parquet"
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+########## 02 Fetch reviews from Snowflake ##########
 def read_reviews_from_snowflake():
     conn = snowflake.connector.connect(
         account=os.getenv("SNOWFLAKE_ACCOUNT"),
@@ -41,6 +43,7 @@ def read_reviews_from_snowflake():
     df.columns = [col.lower() for col in df.columns]
     return df
 
+########## 03 Create embeddings ##########
 def embed(texts):
     response = client.embeddings.create(
         model=EMBEDDING_MODEL,
@@ -48,6 +51,7 @@ def embed(texts):
 
     return [item.embedding for item in response.data]
     
+########## 04 Load or cache reviews ##########
 @st.cache_data()
 def load_reviews():
     if os.path.exists(CACHE_FILE):
@@ -58,9 +62,11 @@ def load_reviews():
     df.to_parquet(CACHE_FILE)
     return df
 
+########## 05 Show app heading ##########
 st.title("Chat with your Zomato Reviews")
 st.caption(f"Searching {NEW_REVIEWS} review, answering with {CHAT_MODEL} model")
 
+########## 06 Find relevant reviews ##########
 def cosine_similarity(vec_a, vec_b):
     return np.dot(vec_a, vec_b) / (np.linalg.norm(vec_a) * np.linalg.norm(vec_b))
 
@@ -75,6 +81,7 @@ def find_similar_reviews(question, df):
     df['score'] = scores
     return df.nlargest(top_k, 'score')
 
+########## 07 Generate answer ##########
 def ask_llm(question, top_reviews):
     context = ""
 
@@ -98,6 +105,7 @@ def ask_llm(question, top_reviews):
     )
     return response.choices[0].message.content
     
+########## 08 Run chat flow ##########
 review_df = load_reviews()
 
 question = st.text_input("Ask a question about your reviews:",

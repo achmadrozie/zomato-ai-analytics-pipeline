@@ -1,4 +1,4 @@
-################ 1. Environtment Setup ################
+################ 1. Environtment, Context Guardrail Setup ################
 import os
 import numpy as np
 import pandas as pd
