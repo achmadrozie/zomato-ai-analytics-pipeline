@@ -4,7 +4,9 @@ FROM apache/airflow:3.0.3
 # Providers for the Snowflake load task and the Airflow login.
 RUN pip install --no-cache-dir \
       apache-airflow-providers-snowflake \
-      apache-airflow-providers-fab
+      apache-airflow-providers-fab \
+      openai \
+      python-dotenv
 
 # Keep dbt's dependencies separate from Airflow's dependencies.
 RUN python -m venv /opt/airflow/dbt_venv && \

@@ -31,7 +31,7 @@ MENTAL MODEL
 5. Close: Close the Snowflake cursor and connection after saving.
 """
 # Get connection through Open API Key
-client = OpenAI(api_key=os.getenv("OPEN_API_KEY")) 
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # System Prompt
 SYSTEM_PROMPT = """Classify this Zomato food delivery review.
