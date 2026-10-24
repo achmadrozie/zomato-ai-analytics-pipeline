@@ -7,6 +7,7 @@ import snowflake.connector
 from openai import OpenAI
 import json
 import sqlparse
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,10 +17,10 @@ MODEL = "gpt-6-luna"
 FORBIDDEN_WORDS = ['drop', 'delete', 'truncate', 'alter', 'update', 'insert', 'create', 'replace', 'grant', 'revoke']
 
 EXAMPLE_QUESTIONS = [
-    "Top 10 cities by GMV",
-    "Which cuisin has the most orders?",
-    "Average delivery time by city, worst first",
-    "Cancel rate by payment method"
+    "Show the top 10 cities by GMV in Q1 2026 by month in pivot where cities in rows and months in columns.",
+    "Which cuisine has the most orders for each payment method?",
+    "Which 10 cities had the fastest average delivery times? Sort from best to the worst.",
+    "What was the cancellation rate by payment method in Q2 2026?",
 ]
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -29,28 +30,48 @@ Tables available in database ZOMATO (use these exact schema-qualified names):
 CORE.FACT_ORDER(order_id, order_date, customer_id, restaurant_id, city, cuisine,
                 payment_method, order_status, is_delivered, is_cancelled,
                 sales_amount, delivered_sales_amount, customer_rating, delivery_time_min)
+CORE.FACT_ORDER_ITEM(order_item_id, order_id, restaurant_id, food_id, order_date,
+                     city, quantity, line_amount)
 MARTS.MART_DAILY_CITY_REVENUE(order_date, city, orders, delivered_orders,
                               cancel_rate, gmv, aov)
 MARTS.MART_RESTAURANT_PERFORMANCE(restaurant_id, restaurant_name, city, cuisine,
                                   orders, revenue, avg_customer_rating, avg_delivery_min)
 MARTS.MART_DELIVERY_SLA(city, order_hour, delivered_orders, p50, p90)
 
-CORE.FACT_ORDER has one row per order. For cancellation rate by payment method,
-group CORE.FACT_ORDER by payment_method and calculate
-100.0 * COUNT_IF(is_cancelled) / NULLIF(COUNT(*), 0).
+CORE.FACT_ORDER has one row per order; CORE.FACT_ORDER_ITEM has one row per item.
 Use a MARTS table only when it has every dimension and measure needed by the question.
 """
- 
-SYSTEM_PROMPT = f"""
+
+DBT_MODELS_DIR = Path(__file__).resolve().parent.parent / "dbt_zomato" / "models"
+
+
+def load_semantic_definitions():
+    paths = sorted((DBT_MODELS_DIR / "semantic_models").glob("semantic_*.yml"))
+    paths += sorted((DBT_MODELS_DIR / "metrics").rglob("*.yml"))
+    if not paths:
+        raise FileNotFoundError(f"No dbt semantic or metric definitions found in {DBT_MODELS_DIR}")
+    return "\n\n".join(f"# {path.relative_to(DBT_MODELS_DIR)}\n{path.read_text(encoding='utf-8')}" for path in paths)
+
+
+def build_system_prompt():
+    return f"""
 You are a Snowflake SQL expert. Write ONE SELECT query that answers the question.
  
 Rules:
 - SELECT queries only, never modify data.
-- Use the exact schema-qualified table names listed above.
+- Use only the schema-qualified Snowflake tables listed below.
+- Read the dbt semantic model and metric definitions below for business meaning,
+  dimensions, measures, and metric formulas. They are definitions, not SQL tables.
+- Translate the requested metric into SQL over the listed tables; do not invent a
+  SEMANTIC or METRICS schema. Do not count order items as orders.
+- Use NULLIF for division denominators.
 - Add a LIMIT of 100 or less, unless the question asks for a single total.
 - Reply as JSON in this exact format: {{"sql": "your query here"}}
  
 {SCHEMA}
+
+dbt semantic model and metric definitions:
+{load_semantic_definitions()}
 """
 
 ################ 2. Get Connection to Snowflake ################
@@ -86,7 +107,7 @@ def generate_sql(question):
         model=MODEL,
         response_format={"type": "json_object"},
         messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": build_system_prompt()},
             {"role": "user", "content": question}
         ]
     )
@@ -146,6 +167,7 @@ def main():
     if question:
         sql = generate_sql(question)
         formatted_sql = sqlparse.format(sql, reindent=True, keyword_case="upper")
+        st.subheader("SQL Output")
         st.code(formatted_sql, language="sql")
 
         if not is_safe(sql):
@@ -154,10 +176,12 @@ def main():
         else:
             try:
                 df = run_query(sql)
+                st.subheader("Data Output")
                 st.success(f"{len(df)} rows returned")
                 st.dataframe(df, hide_index=True)
 
                 if len(df.columns) == 2 and pd.api.types.is_numeric_dtype(df.iloc[:, 1]):
+                    st.subheader("Chart")
                     st.bar_chart(df, x=df.columns[0], y=df.columns[1])
 
             except Exception as e:
