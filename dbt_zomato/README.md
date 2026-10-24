@@ -2,6 +2,16 @@
 
 This dbt project turns Zomato source tables in Snowflake into reusable facts, dimensions, reporting marts, and metric definitions. It is the modeling layer of the [Zomato AI Analytics Pipeline](https://github.com/achmadrozie/zomato-ai-analytics-pipeline).
 
+## Why this modeling layer matters
+
+The project aims to move routine analytics questions from an analyst queue toward self-service answers backed by curated data. The before/after diagram shows that goal; its faster decision time is a target, not a measured result.
+
+![Before and after: analyst queue to self-service analytics](../assets/problem-solution-combined.png)
+
+The dbt models, marts, and metric definitions below form the curated data product that both analysts and the conversational apps can use.
+
+## Architecture
+
 ![Zomato pipeline architecture](../assets/zomato-architecture2.png)
 
 The dbt path in the diagram runs from **staging → intermediate → core → marts**. Semantic models and metrics define business meaning on top of the core facts. The diagram shows the original AI model labels; the current text-to-SQL app uses `gpt-6-luna`.
