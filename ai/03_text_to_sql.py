@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-6-luna"
 
 FORBIDDEN_WORDS = ['drop', 'delete', 'truncate', 'alter', 'update', 'insert', 'create', 'replace', 'grant', 'revoke']
 
@@ -84,7 +84,6 @@ def check_connection():
 def generate_sql(question):
     response = client.chat.completions.create(
         model=MODEL,
-        temperature=0,
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
