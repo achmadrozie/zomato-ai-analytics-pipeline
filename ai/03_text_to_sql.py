@@ -142,6 +142,15 @@ def run_query(sql):
 
 ################ 6. UI + main flow ################
 def main():
+    st.html("""
+    <style>
+      [data-testid="stTextInput"] [data-baseweb="input"]:focus-within {
+        border-color: #16a34a !important;
+        box-shadow: 0 0 0 1px #16a34a !important;
+      }
+    </style>
+    """)
+
     st.title("Chat with your Zomato Data")
     st.caption(f"Ask in English, {MODEL} writes the SQL, Snowflake runs it")
 

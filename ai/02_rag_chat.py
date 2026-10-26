@@ -63,6 +63,16 @@ def load_reviews():
     return df
 
 ########## 05 Show app heading ##########
+st.html("""
+<style>
+  [data-testid="stTextInput"] [data-baseweb="input"]:focus-within,
+  [data-testid="stExpander"] details:focus-within {
+    border-color: #16a34a !important;
+    box-shadow: 0 0 0 1px #16a34a !important;
+  }
+</style>
+""")
+
 st.title("Chat with your Zomato Reviews")
 st.caption(f"Searching {NEW_REVIEWS} review, answering with {CHAT_MODEL} model")
 
