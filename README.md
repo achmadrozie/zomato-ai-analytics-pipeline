@@ -65,14 +65,24 @@ Order metrics live on the order grain and item metrics on the item grain, so the
 | Script | What it does |
 | --- | --- |
 | [`01_enrich_reviews.py`](ai/01_enrich_reviews.py) | **LLM as a transformation step.** Classifies unprocessed reviews into schema-constrained JSON (`sentiment_label`, `sentiment_score`, `topic`, `key_issue`), validates it, and writes to `ZOMATO.AI`. dbt then models it into `mart_review_insights`. Batch-capped (`SAMPLE_N`) and skips already-processed reviews. |
-| [`02_rag_chat.py`](ai/02_rag_chat.py) | **Chat with reviews.** Embeds reviews (`text-embedding-3-small`), retrieves the top 5 for a question, and answers with `gpt-6-luna` grounded in them. |
-| [`03_text_to_sql.py`](ai/03_text_to_sql.py) | **Chat with the warehouse.** Turns a question into one Snowflake `SELECT`, shows the SQL, data, and a chart when applicable. |
+| [`02_rag_chat.py`](ai/02_rag_chat.py) | **Chat with reviews (RAG).** Samples 500 reviews from staging, embeds them with `text-embedding-3-small`, caches them in `ai/review_embeddings.parquet`, then for each question retrieves the top 5 by cosine similarity and answers with `gpt-6-luna`, grounded only in those 5 reviews. |
+| [`03_text_to_sql.py`](ai/03_text_to_sql.py) | **Chat with the warehouse.** Turns a question into one Snowflake `SELECT`, shows the SQL and the result table, and draws a bar chart when the result is a label column plus one number column. |
 
-![Text-to-SQL example showing SQL and data output](assets/text-to-sql%20-%20demo_01.png)
+### Demo: text-to-SQL
+
+![Text-to-SQL: monthly GMV pivot by city, with the generated SQL](assets/text_to_sql%20-%20demo_1.png)
+
+![Text-to-SQL: average delivery time by city, sorted best to worst](assets/text_to_sql%20-%20demo_2.png)
+
+### Demo: RAG over reviews
+
+![RAG: answer about courier delivery complaints, with the 5 reviews used](assets/rag%20-%20demo_1.png)
+
+![RAG: answer about food quality complaints, with the 5 reviews used](assets/rag%20-%20demo_2.png)
 
 **How text-to-SQL stays safe and consistent**
 
-- Reads the dbt semantic model and metric YAML at runtime, so generation follows the same definitions as the models. It runs the SQL on Snowflake; it does not query MetricFlow.
+- Reads the dbt semantic model and metric YAML at runtime (`dbt_zomato/models/semantic_models/` and `dbt_zomato/models/metrics/`), so generation follows the same definitions as the models. It runs the SQL on Snowflake; it does not query MetricFlow.
 - `SELECT` only: forbidden keywords are rejected, `LIMIT` ≤ 100 is requested, and queries run as the restricted `DBT_ROLE` with a 60s statement timeout.
 
 ## Orchestration
@@ -93,29 +103,71 @@ COPY INTO      dbt build     OpenAI enrichment   review insights mart
 | [`aws/iam/`](aws/iam/) | Example S3 read policy and role trust policy |
 | [`dbt_zomato/`](dbt_zomato/) | Models, tests, semantic models, metrics |
 | [`airflow/`](airflow/) | Docker setup and the `zomato_batch` DAG |
-| [`ai/`](ai/) | Review enrichment, RAG, and text-to-SQL |
+| [`ai/`](ai/) | Review enrichment, RAG, and text-to-SQL. `ai/.env` holds local secrets (not in version control) |
+| [`assets/`](assets/) | Architecture diagram, problem/solution visuals, and demo screenshots |
 
 ## Getting started
+
+**Prerequisites**
+
+- Python 3.11+ and dbt (`dbt-snowflake`) with a local profile named `dbt_zomato` (see [dbt README](dbt_zomato/README.md)).
+- A Snowflake account and an OpenAI API key with access to the models in `ai/`.
+- Docker, only if you want the Airflow path.
 
 ```bash
 # 1. Snowflake + S3: run snowflake/01 → 05 in order, adjusting account-specific values
 #    (AWS side: aws/iam/). Upload the CSVs to your bucket.
 
-# 2. dbt (needs a local profile named dbt_zomato)
+# 2. dbt: builds everything except the AI mart
 cd dbt_zomato
 dbt deps && dbt build --exclude tag:ai
+cd ..
 
-# 3. AI apps (OPENAI_API_KEY and SNOWFLAKE_* in env or .env)
-python ai/01_enrich_reviews.py
-cd dbt_zomato && dbt build --select tag:ai && cd ..
-streamlit run ai/02_rag_chat.py
-streamlit run ai/03_text_to_sql.py
+# 3. Python packages for the AI apps (versions these scripts were last run with are in brackets)
+python -m venv .venv && source .venv/bin/activate
+pip install streamlit openai "snowflake-connector-python[pandas]" pandas numpy pyarrow \
+            python-dotenv sqlparse
+#   streamlit 1.66 · openai 3.x · snowflake-connector-python 4.8 · pandas 3.0 · pyarrow 23
 
-# 4. Or schedule everything with Airflow
+# 4. Secrets: create ai/.env (gitignored). Names only, fill in your own values:
+#    OPENAI_API_KEY=
+#    SNOWFLAKE_ACCOUNT=
+#    SNOWFLAKE_USER=
+#    SNOWFLAKE_PASSWORD=
+#    SNOWFLAKE_WAREHOUSE=
+#    SNOWFLAKE_DATABASE=ZOMATO
+#    SNOWFLAKE_SCHEMA=
+
+# 5. AI apps. Run from ai/: the review cache is written to the current folder.
+cd ai
+python 01_enrich_reviews.py                              # enrich reviews into ZOMATO.AI
+cd ../dbt_zomato && dbt build --select tag:ai && cd ../ai  # build the AI mart
+streamlit run 02_rag_chat.py                             # RAG chat, http://localhost:8501
+streamlit run 03_text_to_sql.py                          # text-to-SQL, second terminal (uses 8502 if 8501 is busy)
+
+# 6. Or schedule everything with Airflow (from the repo root)
 cd airflow && docker compose up --build
 ```
 
-Credentials, dbt profiles, source CSVs, and embedding files are not in version control. The Airflow setup expects a dbt profile at `~/.dbt`.
+Credentials, dbt profiles, source CSVs, and embedding files are not in version control. The Airflow setup mounts a dbt profile from `~/.dbt`.
+
+### Troubleshooting
+
+| Symptom | Cause and fix |
+| --- | --- |
+| Startup error about a missing API key or Snowflake account | A variable in `ai/.env` is empty or missing. Check the names in step 4. The scripts load `ai/.env` from their own folder, so the file must be in `ai/`. |
+| Text-to-SQL shows "Snowflake connection failed" | Click **Check Snowflake connection** in the sidebar to see the error. Confirm the account and user, and that `DBT_ROLE` exists and can read `MARTS` and `CORE` (`snowflake/01_setup.sql`). A failed check also clears the cached connection, so the next click reconnects. |
+| `No dbt semantic or metric definitions found in …/dbt_zomato/models` | The text-to-SQL app reads YAML from `dbt_zomato/models/`. Keep that folder layout intact. |
+| Text-to-SQL shows "not safe to run" | The keyword guard matches substrings, so a valid question can be blocked (e.g. a column containing `update` or `create`). Rephrase the question. |
+| Text-to-SQL shows "Error running query" | The SQL was generated but Snowflake rejected it. The SQL is shown above the error. Rephrase, or fix it by hand in Snowflake. |
+| RAG first run is slow and costs API calls | The first run samples 500 reviews, embeds them, and writes `ai/review_embeddings.parquet`. Later runs read the cache. Delete the file to rebuild it. |
+| `model not found` or access error from OpenAI | Your key may not have `gpt-6-luna` or `text-embedding-3-small`. Change `MODEL` in `ai/03_text_to_sql.py`, `CHAT_MODEL` and `EMBEDDING_MODEL` in `ai/02_rag_chat.py`, and `MODEL` in `ai/01_enrich_reviews.py`. |
+
+## Limits
+
+- **RAG answers come from a 500-review random sample**, not the full 300K reviews, and only the 5 closest reviews reach the model. Treat answers as a reading of those reviews, not a count of complaints.
+- **Text-to-SQL trusts the LLM for correctness.** The `LIMIT` is only requested in the prompt, and the output is not checked for correct business meaning. The real write protection is the `DBT_ROLE` grant set, not the keyword check.
+- **Enrichment is batched.** `01_enrich_reviews.py` enriches only `SAMPLE_N` unprocessed reviews per run, so `mart_review_insights` covers more reviews after each run rather than all at once.
 
 ## Tech stack
 

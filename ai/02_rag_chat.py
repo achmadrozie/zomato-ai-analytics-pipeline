@@ -41,6 +41,8 @@ def read_reviews_from_snowflake():
     conn.close()
 
     df.columns = [col.lower() for col in df.columns]
+    # The embeddings API rejects empty input, and staging only drops NULL comments, not blank ones.
+    df = df[df["comment"].fillna("").str.strip() != ""].reset_index(drop=True)
     return df
 
 ########## 03 Create embeddings ##########

@@ -112,7 +112,12 @@ def generate_sql(question):
         ]
     )
     answer = response.choices[0].message.content
-    sql = json.loads(answer)["sql"]
+    try:
+        sql = json.loads(answer)["sql"]
+    except (json.JSONDecodeError, KeyError, TypeError) as e:
+        raise ValueError(f"The model did not return JSON with an 'sql' field ({e!r})") from e
+    if not isinstance(sql, str) or not sql.strip():
+        raise ValueError("The model returned an empty SQL query")
 
     sql = sql.replace("ZOMATO.", "")
     return sql.strip().rstrip(";")
@@ -132,13 +137,28 @@ def is_safe(sql):
     return True
 
 ################ 5. Run query ################
+# Snowflake error codes for a session that expired or no longer exists while idle.
+SESSION_EXPIRED_ERRNOS = (390111, 390114)
+
 def run_query(sql):
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        return cursor.execute(sql).fetch_pandas_all()
-    finally:
-        cursor.close()
+    for attempt in range(2):
+        cursor = None
+        try:
+            cursor = get_connection().cursor()
+            return cursor.execute(sql).fetch_pandas_all()
+        except snowflake.connector.errors.Error as e:
+            # The connection is cached for the whole app run, so an idle session that expired would
+            # fail every query. Drop it and retry once on a fresh one; any other error is the caller's.
+            if attempt == 0 and (getattr(e, "errno", None) in SESSION_EXPIRED_ERRNOS or get_connection().is_closed()):
+                get_connection.clear()
+                continue
+            raise
+        finally:
+            if cursor is not None:
+                try:
+                    cursor.close()
+                except snowflake.connector.errors.Error:
+                    pass
 
 ################ 6. UI + main flow ################
 def main():
@@ -167,14 +187,17 @@ def main():
             except Exception as e:
                 get_connection.clear()
                 st.error(f"Snowflake connection failed: {e}")
-            st.stop()
 
     question = st.text_input("Enter your question here", 
                             placeholder="e.g. Top 10 restaurants by revenune in Banglore")
 
 
     if question:
-        sql = generate_sql(question)
+        try:
+            sql = generate_sql(question)
+        except Exception as e:
+            st.error(f"Could not generate SQL: {e}. Please try rephrasing your question.")
+            st.stop()
         formatted_sql = sqlparse.format(sql, reindent=True, keyword_case="upper")
         st.subheader("SQL Output")
         st.code(formatted_sql, language="sql")
