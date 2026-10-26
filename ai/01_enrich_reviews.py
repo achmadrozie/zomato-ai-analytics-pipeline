@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-6-luna"
 
 SAMPLE_N = 100
 TOPICS = [
@@ -114,7 +114,6 @@ def get_reviews_to_enrich(cursor):
 def classify_review(comment):
     response = client.chat.completions.create(
         model=MODEL,
-        temperature=0,
         response_format=REVIEW_RESPONSE_FORMAT,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},

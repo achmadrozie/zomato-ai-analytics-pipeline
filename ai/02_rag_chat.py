@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 EMBEDDING_MODEL = "text-embedding-3-small"
-CHAT_MODEL = "gpt-4o-mini"
+CHAT_MODEL = "gpt-6-luna"
 NEW_REVIEWS = 500
 top_k = 5
 CACHE_FILE = "review_embeddings.parquet"
@@ -97,7 +97,6 @@ def ask_llm(question, top_reviews):
 
     response = client.chat.completions.create(
         model=CHAT_MODEL,
-        temperature=0.2,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
