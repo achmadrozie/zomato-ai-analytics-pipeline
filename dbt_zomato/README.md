@@ -22,9 +22,9 @@ The [text-to-SQL app](../ai/03_text_to_sql.py) reads dbt semantic model and metr
 
 ### Architecture
 
-![Zomato pipeline architecture](../assets/zomato-architecture2.png)
+![Zomato pipeline architecture](../assets/zomato-architecture.png)
 
-The dbt path is **sources → staging → intermediate → core → marts**, with semantic models and metrics defined on the core facts. The diagram retains its original AI model labels; the current text-to-SQL app uses `gpt-6-luna`.
+The dbt path is **sources → staging → intermediate → core → marts**, with semantic models and metrics defined on the core facts.
 
 | Layer | Materialization | Contents |
 | --- | --- | --- |

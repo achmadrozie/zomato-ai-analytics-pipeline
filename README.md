@@ -2,9 +2,7 @@
 
 > From raw food-delivery CSVs to governed dbt models, LLM-enriched reviews, and chat-based analytics: S3 → Snowflake → dbt → Airflow → OpenAI → Streamlit.
 
-![Zomato analytics pipeline architecture](assets/zomato-architecture2.png)
-
-*The diagram keeps its original model labels; the text-to-SQL app currently uses `gpt-6-luna`.*
+![Zomato analytics pipeline architecture](assets/zomato-architecture.png)
 
 ---
 
@@ -25,7 +23,7 @@ Analytics requests pile up with one analyst, and metric definitions scatter acro
 | Transform | dbt: `staging` → `intermediate` → `core` → `marts` | Clean, join, model, aggregate |
 | Semantic layer | 2 semantic models, 9 metrics (GMV, AOV, cancellation rate, ...) | One definition per business metric |
 | Orchestration | Airflow DAG `zomato_batch` (daily) | Load → build → enrich → AI mart |
-| AI enrichment | OpenAI `gpt-4o-mini` | Reviews → sentiment, topic, key issue |
+| AI enrichment | OpenAI `gpt-6-luna` | Reviews → sentiment, topic, key issue |
 | AI apps | Streamlit: review RAG and text-to-SQL | Qualitative and quantitative questions in plain English |
 
 ## Data model
@@ -67,7 +65,7 @@ Order metrics live on the order grain and item metrics on the item grain, so the
 | Script | What it does |
 | --- | --- |
 | [`01_enrich_reviews.py`](ai/01_enrich_reviews.py) | **LLM as a transformation step.** Classifies unprocessed reviews into schema-constrained JSON (`sentiment_label`, `sentiment_score`, `topic`, `key_issue`), validates it, and writes to `ZOMATO.AI`. dbt then models it into `mart_review_insights`. Batch-capped (`SAMPLE_N`) and skips already-processed reviews. |
-| [`02_rag_chat.py`](ai/02_rag_chat.py) | **Chat with reviews.** Embeds reviews (`text-embedding-3-small`), retrieves the top 5 for a question, and answers with `gpt-4o-mini` grounded in them. |
+| [`02_rag_chat.py`](ai/02_rag_chat.py) | **Chat with reviews.** Embeds reviews (`text-embedding-3-small`), retrieves the top 5 for a question, and answers with `gpt-6-luna` grounded in them. |
 | [`03_text_to_sql.py`](ai/03_text_to_sql.py) | **Chat with the warehouse.** Turns a question into one Snowflake `SELECT`, shows the SQL, data, and a chart when applicable. |
 
 ![Text-to-SQL example showing SQL and data output](assets/text-to-sql%20-%20demo_01.png)
