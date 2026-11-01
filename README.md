@@ -173,6 +173,14 @@ Credentials, dbt profiles, source CSVs, and embedding files are not in version c
 
 Python · AWS S3 · Snowflake · dbt Core · Apache Airflow · OpenAI API · Streamlit
 
+## Acknowledgements
+
+This project was inspired by Darshil Parmar’s Zomato AI Data Engineering tutorial. Changes and additions in this repo:
+- Restructured dbt layers (sources → staging → intermediate → core → marts) with data tests, docs and clear model grain
+- Added a semantic layer in MetricFlow YAML (2 semantic models, 9 metrics) used by the text-to-SQL app
+
+All views and any errors are my own.
+
 ## What's next
 
 Measure it: compare AI answer correctness and consistency when given raw sources vs. modeled layers vs. semantic definitions and written context. Until then, the impact above remains a goal, not a result.
